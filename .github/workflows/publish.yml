@@ -1,6 +1,6 @@
 name: Publish image
 
-# A `v*` tag builds and pushes the base image to GHCR. The workflow file is read
+# A `v*` tag builds and pushes the base image and the Helm chart (OCI) to GHCR. The workflow file is read
 # from the tagged commit, so a test tag works from any branch.
 on:
   push:
@@ -47,3 +47,40 @@ jobs:
           labels: |-
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.version=${{ steps.tag.outputs.version }}
+
+  chart:
+    needs: image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5
+        with:
+          install_args: helm
+
+      # The tag is the release: chart version and appVersion (= image tag) must match it.
+      - name: Check tag matches Chart.yaml
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          want="${REF_NAME#v}"
+          for key in version appVersion; do
+            got="$(awk -v k="$key:" '$1==k {gsub(/"/, "", $2); print $2}' charts/agent-workspace/Chart.yaml)"
+            [ "$got" = "$want" ] || { echo "Chart.yaml $key is '$got', tag says '$want'" >&2; exit 1; }
+          done
+
+      - name: Package and push
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          ACTOR: ${{ github.actor }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+        run: |-
+          echo "$GH_TOKEN" | helm registry login ghcr.io --username "$ACTOR" --password-stdin
+          helm package charts/agent-workspace --destination dist
+          helm push "dist/agent-workspace-${REF_NAME#v}.tgz" "oci://ghcr.io/${OWNER,,}/charts"
