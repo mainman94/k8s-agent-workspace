@@ -6,4 +6,7 @@
 # subcommand, so it is prepended here for every invocation.
 real="${HOME}/.local/bin/claude"
 [ -x "$real" ] || { echo "claude is not installed (agent.preset is not claude-code?)" >&2; exit 127; }
+# `remote-control` refuses the flag (it cannot carry it over to the sessions it
+# starts) and its headless sessions have no TUI to show the /tmp warning in.
+[ "$1" = "remote-control" ] && exec "$real" "$@"
 exec "$real" --messaging-socket-path "${TMPDIR:-${HOME}/.tmp}/messaging-$$.sock" "$@"

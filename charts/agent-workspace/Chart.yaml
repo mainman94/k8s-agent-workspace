@@ -2,8 +2,8 @@ apiVersion: v2
 name: agent-workspace
 description: A locked-down workspace pod for AI coding agents (Claude Code, Codex, ...) with RBAC profiles and optional ttyd access
 type: application
-version: 0.1.1
-appVersion: "0.1.1"
+version: 0.1.2
+appVersion: "0.1.2"
 kubeVersion: ">=1.29.0-0"
 home: https://github.com/mainman94/k8s-agent-workspace
 sources:
