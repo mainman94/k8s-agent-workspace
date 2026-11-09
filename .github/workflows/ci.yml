@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: pre-commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      # Versions come from mise.toml, the same file the dev container uses.
+      - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5
+        with:
+          install_args: python prek actionlint shellcheck helm-docs
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/.cache/prek
+          key: prek-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Run every hook
+        run: prek run --all-files --show-diff-on-failure
+
+  chart:
+    name: chart
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5
+        with:
+          install_args: helm kubeconform aqua:helm/chart-testing
+
+      # Lints chart metadata (version bump vs main, maintainers, schema) the way
+      # a published chart is judged.
+      - name: chart-testing lint
+        env:
+          BASE_REF: ${{ github.base_ref || 'main' }}
+        run: ct lint --charts charts/agent-workspace --target-branch "$BASE_REF" --check-version-increment=false
+
+      - name: Render and validate every ci/ values file
+        run: make template
+
+  image:
+    name: image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      # Build only: publishing (GHCR + cosign) is a separate, tag-triggered workflow.
+      - name: Build image
+        run: docker build --tag k8s-agent-workspace:ci image

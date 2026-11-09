@@ -1,0 +1,142 @@
+# -- Workspace image. The agent CLI is NOT baked in (Claude Code is proprietary
+# software); an init container installs the pinned version into the home volume.
+image:
+  repository: ghcr.io/mainman94/k8s-agent-workspace
+  # -- Defaults to the chart appVersion.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+agent:
+  # -- Which agent to install into the home volume: `claude-code`, `codex` or `none`.
+  preset: claude-code
+
+# -- Pinned agent CLI versions, installed from npm by the init container.
+# Renovate bumps these; there is deliberately no `latest`.
+presets:
+  claude-code:
+    package: "@anthropic-ai/claude-code"
+    # renovate: datasource=npm depName=@anthropic-ai/claude-code
+    version: "2.1.319"
+  codex:
+    package: "@openai/codex"
+    # renovate: datasource=npm depName=@openai/codex
+    version: "0.167.0"
+
+# -- Credentials. Never put keys in values: reference a Secret that already
+# exists (e.g. created by an ExternalSecret). Every key becomes an env var.
+# Subscription login: run `claude` in the pod and `/login` once; the session is
+# stored in the home PVC and survives restarts. For headless use put the output
+# of `claude setup-token` in this Secret as CLAUDE_CODE_OAUTH_TOKEN.
+secrets:
+  existingSecret: ""
+
+# -- MCP servers for Claude Code, rendered into a project-scope `.mcp.json` in
+# the workspace directory (rewritten on every pod start; values are the source
+# of truth). Remote servers use `type: http` + `url`; local ones run as
+# stdio processes inside the pod (`command: npx`; node is in the image).
+# Put tokens in `secrets.existingSecret` and reference them as ${VAR}, which
+# Claude Code expands at runtime, so no credential ever lands in values or a ConfigMap.
+# Claude Code asks once to approve project-scope servers on first use.
+mcp:
+  servers: {}
+  #  super-intelligence:
+  #    type: http
+  #    url: https://mcp.example.com/mcp
+  #    headers:
+  #      Authorization: Bearer ${SUPER_INTELLIGENCE_TOKEN}
+  #  firefly:
+  #    command: npx
+  #    args: [-y, some-firefly-mcp]
+  #    env:
+  #      FIREFLY_TOKEN: ${FIREFLY_TOKEN}
+
+# -- Code checkout. `git` and `gh` are in the image. Put a GitHub token in
+# `secrets.existingSecret` as GH_TOKEN: it authenticates `gh` and, through a
+# credential helper wired up by env vars (no files written), `git` over HTTPS.
+git:
+  userName: agent-workspace
+  userEmail: agent-workspace@users.noreply.github.com
+  # -- Repositories cloned into the workspace on pod start when the target
+  # directory does not exist yet. Existing checkouts are never touched, so
+  # the agent's work survives restarts.
+  repos: []
+  #  - url: https://github.com/example/repo.git
+  #    path: repo        # relative to /home/agent/workspace; defaults to the repo name
+  #    ref: main         # optional branch or tag
+
+# -- Extra plain environment variables.
+env: {}
+
+persistence:
+  # -- Keep the home directory (agent install, auth, shell history) on a PVC.
+  # When false the home is an emptyDir and everything is lost on restart.
+  enabled: true
+  size: 10Gi
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+
+rbac:
+  # -- What the workspace may do in the cluster.
+  # `none`            no ServiceAccount token is mounted (default)
+  # `readonly`        get/list/watch on common resources, Secrets excluded
+  # `namespace-admin` the built-in `admin` ClusterRole, bound in the release namespace only
+  profile: none
+  # -- `readonly` only: grant cluster-wide instead of release-namespace-only.
+  clusterWide: false
+
+serviceAccount:
+  # -- Annotations for the ServiceAccount (e.g. workload identity).
+  annotations: {}
+
+ttyd:
+  # -- Serve a web terminal (ttyd + tmux). Needs a credential Secret: a shell
+  # without authentication is never rendered. Without ttyd the pod idles and
+  # you use `kubectl exec -it <pod> -- tmux new -A -s agent`.
+  enabled: false
+  port: 7681
+  # -- Secret holding the basic-auth credential as `user:password` under the key below.
+  existingSecret: ""
+  secretKey: credential
+
+service:
+  type: ClusterIP
+  port: 7681
+
+# -- Gateway API route to the ttyd service. Requires `ttyd.enabled`.
+httpRoute:
+  enabled: false
+  hostnames: []
+  parentRefs: []
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 2Gi
+
+# -- Merged into the pod/container securityContext. The defaults are the point of this chart.
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: [ALL]
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+podAnnotations: {}
+podLabels: {}

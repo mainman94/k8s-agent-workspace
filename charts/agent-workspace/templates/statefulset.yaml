@@ -1,0 +1,167 @@
+{{- $name := include "agent-workspace.fullname" . }}
+{{- $image := printf "%s:%s" .Values.image.repository (default .Chart.AppVersion .Values.image.tag) }}
+{{- $pkg := include "agent-workspace.agentPackage" . }}
+{{- if and .Values.ttyd.enabled (not .Values.ttyd.existingSecret) }}
+{{- fail "ttyd.enabled needs ttyd.existingSecret: a web shell without authentication is never rendered" }}
+{{- end }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "agent-workspace.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  serviceName: {{ $name }}
+  selector:
+    matchLabels:
+      {{- include "agent-workspace.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "agent-workspace.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ $name }}
+      automountServiceAccountToken: {{ include "agent-workspace.mountToken" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        # Always runs: the workspace directory must exist and be owned by the
+        # workspace user before the main container's workingDir points at it.
+        - name: seed-home
+          image: {{ $image }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: [sh, -ec]
+          args:
+            - |
+              mkdir -p /home/agent/workspace
+              {{- if .Values.mcp.servers }}
+              cp /config/mcp.json /home/agent/workspace/.mcp.json
+              {{- end }}
+              cd /home/agent/workspace
+              {{- range .Values.git.repos }}
+              {{- $path := default (base (trimSuffix ".git" .url)) .path }}
+              [ -e {{ $path | squote }} ] || git clone {{ with .ref }}--branch {{ . | squote }} {{ end }}-- {{ .url | squote }} {{ $path | squote }}
+              {{- end }}
+          env:
+            {{- include "agent-workspace.baseEnv" . | nindent 12 }}
+          {{- if .Values.secrets.existingSecret }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.secrets.existingSecret }}
+          {{- end }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          volumeMounts:
+            - { name: home, mountPath: /home/agent }
+            {{- if .Values.mcp.servers }}
+            - { name: mcp-config, mountPath: /config, readOnly: true }
+            {{- end }}
+        {{- if $pkg }}
+        - name: install-agent
+          image: {{ $image }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: [sh, -ec]
+          args:
+            - npm install --global --no-fund --no-audit {{ $pkg | quote }}
+          env:
+            {{- include "agent-workspace.baseEnv" . | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          volumeMounts:
+            - { name: home, mountPath: /home/agent }
+            - { name: tmp, mountPath: /tmp }
+        {{- end }}
+      containers:
+        - name: workspace
+          image: {{ $image }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          workingDir: /home/agent/workspace
+          {{- if .Values.ttyd.enabled }}
+          command: [sh, -c]
+          # exec so ttyd is PID 1's replacement and receives SIGTERM.
+          args:
+            - exec ttyd --writable --port {{ .Values.ttyd.port }} --credential "$TTYD_CREDENTIAL" tmux new -A -s agent
+          ports:
+            - { name: ttyd, containerPort: {{ .Values.ttyd.port }} }
+          readinessProbe:
+            tcpSocket: { port: ttyd }
+          {{- else }}
+          command: [sleep, infinity]
+          {{- end }}
+          env:
+            {{- include "agent-workspace.baseEnv" . | nindent 12 }}
+            {{- if .Values.ttyd.enabled }}
+            - name: TTYD_CREDENTIAL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.ttyd.existingSecret }}
+                  key: {{ .Values.ttyd.secretKey }}
+            {{- end }}
+            {{- range $k, $v := .Values.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+          {{- if .Values.secrets.existingSecret }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.secrets.existingSecret }}
+          {{- end }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - { name: home, mountPath: /home/agent }
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        {{- if .Values.mcp.servers }}
+        - name: mcp-config
+          configMap:
+            name: {{ $name }}-mcp
+        {{- end }}
+        {{- if not .Values.persistence.enabled }}
+        - name: home
+          emptyDir: {}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  {{- if .Values.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: home
+        labels:
+          {{- include "agent-workspace.selectorLabels" . | nindent 10 }}
+      spec:
+        accessModes:
+          {{- toYaml .Values.persistence.accessModes | nindent 10 }}
+        {{- with .Values.persistence.storageClass }}
+        storageClassName: {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}
+  {{- end }}

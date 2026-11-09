@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "agent": {
+      "type": "object",
+      "properties": {
+        "preset": { "enum": ["claude-code", "codex", "none"] }
+      }
+    },
+    "rbac": {
+      "type": "object",
+      "properties": {
+        "profile": { "enum": ["none", "readonly", "namespace-admin"] },
+        "clusterWide": { "type": "boolean" }
+      }
+    },
+    "ttyd": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "port": { "type": "integer", "minimum": 1, "maximum": 65535 }
+      }
+    },
+    "persistence": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" }
+      }
+    }
+  }
+}

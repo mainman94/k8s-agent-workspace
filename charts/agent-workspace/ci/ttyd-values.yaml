@@ -1,0 +1,11 @@
+ttyd:
+  enabled: true
+  existingSecret: ttyd-auth
+httpRoute:
+  enabled: true
+  hostnames: [agent.example.com]
+  parentRefs:
+    - name: gateway
+      namespace: gateway-system
+secrets:
+  existingSecret: agent-keys

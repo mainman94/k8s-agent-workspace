@@ -1,0 +1,13 @@
+.idea/
+.vscode/
+kubeconfig
+talosconfig
+*.tgz
+# Agent configuration: only the shared bits are checked in.
+.claude/*
+!.claude/settings.json
+!.claude/skills/
+!.claude/agents/
+.serena/
+.codex/
+.remember/

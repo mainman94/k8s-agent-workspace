@@ -1,0 +1,3 @@
+rbac:
+  profile: readonly
+  clusterWide: true

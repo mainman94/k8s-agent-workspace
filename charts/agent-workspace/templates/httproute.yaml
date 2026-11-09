@@ -1,0 +1,24 @@
+{{- if .Values.httpRoute.enabled }}
+{{- if not .Values.ttyd.enabled }}
+{{- fail "httpRoute.enabled needs ttyd.enabled: there is nothing to route to otherwise" }}
+{{- end }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "agent-workspace.fullname" . }}
+  labels:
+    {{- include "agent-workspace.labels" . | nindent 4 }}
+spec:
+  {{- with .Values.httpRoute.parentRefs }}
+  parentRefs:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.httpRoute.hostnames }}
+  hostnames:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    - backendRefs:
+        - name: {{ include "agent-workspace.fullname" . }}
+          port: {{ .Values.service.port }}
+{{- end }}
