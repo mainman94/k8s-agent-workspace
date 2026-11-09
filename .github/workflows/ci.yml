@@ -41,14 +41,14 @@ jobs:
 
       - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5
         with:
-          install_args: helm kubeconform aqua:helm/chart-testing
+          install_args: helm kubeconform aqua:helm/chart-testing pipx:yamale pipx:yamllint python
 
       # Lints chart metadata (version bump vs main, maintainers, schema) the way
       # a published chart is judged.
       - name: chart-testing lint
         env:
           BASE_REF: ${{ github.base_ref || 'main' }}
-        run: ct lint --charts charts/agent-workspace --target-branch "$BASE_REF" --check-version-increment=false
+        run: ct lint --config .github/ct/ct.yaml --charts charts/agent-workspace --target-branch "$BASE_REF"
 
       - name: Render and validate every ci/ values file
         run: make template

@@ -1,6 +1,6 @@
-# Token/context-efficiency setup: headroom compresses large tool output before
-# it reaches the model; ponytail and caveman are plugins that keep answers and
-# diffs small. Everything here is opt-in; the chart defaults stay neutral.
+# Opt-in agent setup: ponytail (a plugin that keeps changes and answers small)
+# plus standing instructions that steer the agent to the fast search tools in
+# the image. The chart defaults stay neutral.
 agent:
   instructions: |
     # Search tools
@@ -8,19 +8,10 @@ agent:
     instead of `find`, `bat` instead of `cat` for viewing, `jq` for JSON,
     `ast-grep` for structural code search/rewrite.
 
-mcp:
-  servers:
-    headroom:
-      command: uvx
-      args: [--from, headroom-ai, headroom, mcp, serve]
-
 claude:
   managedSettings:
     extraKnownMarketplaces:
       ponytail:
         source: {source: github, repo: DietrichGebert/ponytail}
-      caveman:
-        source: {source: github, repo: JuliusBrussee/caveman}
     enabledPlugins:
       ponytail@ponytail: true
-      caveman@caveman: true

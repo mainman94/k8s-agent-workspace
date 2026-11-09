@@ -1,0 +1,6 @@
+chart-dirs:
+  - charts
+chart-yaml-schema: .github/ct/chart_schema.yaml
+lint-conf: .github/ct/lintconf.yaml
+check-version-increment: false
+validate-maintainers: false
