@@ -35,6 +35,6 @@ comment; Renovate keeps them current. Do not tidy a pin back to a tag.
 ## Not done yet
 
 NetworkPolicy + CiliumNetworkPolicy (`toFQDNs`), ExternalSecret, repo-clone
-init container, Codex MCP config (`~/.codex/config.toml`), GHCR publish with
+init container (done), Codex MCP config (`~/.codex/config.toml`), GHCR publish with
 Cosign, Artifact Hub listing, branch ruleset (defined in homelab
 `terraform/github`).
