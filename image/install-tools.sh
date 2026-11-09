@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install kubectl, helm, talosctl, gh, ttyd, uv and terraform with checksum verification.
+# Install kubectl, helm, talosctl, gh, ttyd, uv, terraform, yq and difftastic with checksum verification.
 # Expects TARGETARCH (amd64|arm64) and the *_VERSION build args in the env.
 set -euo pipefail
 
@@ -63,3 +63,20 @@ fetch "${base}/terraform_${TERRAFORM_VERSION}_linux_${arch}.zip" terraform.zip
 check terraform.zip "$(curl -fsSL "${base}/terraform_${TERRAFORM_VERSION}_SHA256SUMS" | awk -v f="terraform_${TERRAFORM_VERSION}_linux_${arch}.zip" '$2==f {print $1}')"
 unzip -q terraform.zip terraform
 install -m 0755 terraform /usr/local/bin/terraform
+
+# yq (mikefarah's Go yq, not Debian's Python wrapper of the same name)
+base="https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}"
+fetch "${base}/yq_linux_${arch}" yq
+check yq "$(curl -fsSL "${base}/checksums-bsd" | awk -v f="(yq_linux_${arch})" '$1=="SHA256" && $2==f {print $NF}')"
+install -m 0755 yq /usr/local/bin/yq
+
+# difftastic: no published checksum file, so the sha256 values are pinned here.
+# Update both together with DIFFTASTIC_VERSION (GitHub shows them as asset digests).
+case "$arch" in
+  amd64) difft_arch=x86_64;  difft_sha=33ea1f003081e9f2422299a434e6040c89085bd9f102b08f3fe30393720d5d4a ;;
+  arm64) difft_arch=aarch64; difft_sha=0993a82a6708a24adc6c6b8de366924728ed08f537a5b488940082c8edc79353 ;;
+esac
+fetch "https://github.com/Wilfred/difftastic/releases/download/${DIFFTASTIC_VERSION}/difft-${DIFFTASTIC_VERSION}-${difft_arch}-unknown-linux-gnu.tar.gz" difft.tgz
+check difft.tgz "$difft_sha"
+tar -xzf difft.tgz difft
+install -m 0755 difft /usr/local/bin/difft
