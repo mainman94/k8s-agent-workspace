@@ -38,6 +38,9 @@ RUN npm install --global --no-fund --no-audit "@ast-grep/cli@${AST_GREP_VERSION}
 COPY install-tools.sh /usr/local/bin/install-tools.sh
 RUN /usr/local/bin/install-tools.sh && rm /usr/local/bin/install-tools.sh
 
+# Wrapper that first on PATH (the chart sets it) fixes Claude Code's messaging socket path.
+COPY --chmod=755 claude-wrapper.sh /opt/agent/bin/claude
+
 # Fixed uid so the chart's securityContext and PVC ownership line up. The node
 # base image ships a `node` user at 1000; the workspace user is separate.
 RUN groupadd --gid 10001 agent && useradd --uid 10001 --gid 10001 --home-dir /home/agent --shell /bin/bash agent \
