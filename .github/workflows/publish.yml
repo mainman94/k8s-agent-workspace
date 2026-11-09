@@ -62,6 +62,8 @@ jobs:
       - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5
         with:
           install_args: helm
+          # A release workflow must not restore a cache an earlier run could have poisoned.
+          cache: false
 
       # The tag is the release: chart version and appVersion (= image tag) must match it.
       - name: Check tag matches Chart.yaml
