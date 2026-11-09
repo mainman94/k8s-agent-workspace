@@ -34,7 +34,7 @@ comment; Renovate keeps them current. Do not tidy a pin back to a tag.
 
 ## Not done yet
 
-NetworkPolicy + CiliumNetworkPolicy (`toFQDNs`), ExternalSecret, repo-clone
-init container (done), Codex MCP config (`~/.codex/config.toml`), GHCR publish with
-Cosign, Artifact Hub listing, branch ruleset (defined in homelab
-`terraform/github`).
+NetworkPolicy + CiliumNetworkPolicy (`toFQDNs`), ExternalSecret, kubeconfig
+Secret mount, Codex MCP config (`~/.codex/config.toml`), Cosign signing of the
+image and chart (GHCR publish itself is done, see `publish.yml`), Artifact Hub
+listing, branch ruleset (defined in homelab `terraform/github`).
