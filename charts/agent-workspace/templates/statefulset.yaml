@@ -47,6 +47,7 @@ spec:
             - |
               mkdir -p /home/agent/workspace /home/agent/.tmp
               chmod 700 /home/agent/.tmp
+              rm -f /home/agent/.tmp/messaging-*.sock
               {{- if .Values.mcp.servers }}
               cp /config/mcp.json /home/agent/workspace/.mcp.json
               {{- end }}

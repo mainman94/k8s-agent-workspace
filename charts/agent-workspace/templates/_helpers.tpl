@@ -64,7 +64,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 - name: TMUX_TMPDIR
   value: /tmp
 - name: PATH
-  value: /home/agent/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+  value: /opt/agent/bin:/home/agent/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 - name: GIT_CONFIG_COUNT
   value: "3"
 - name: GIT_CONFIG_KEY_0
