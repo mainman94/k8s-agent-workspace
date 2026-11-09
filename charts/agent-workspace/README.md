@@ -88,6 +88,8 @@ Kubernetes: `>=1.29.0-0`
 | presets | object | `{"claude-code":{"package":"@anthropic-ai/claude-code","version":"2.1.319"},"codex":{"package":"@openai/codex","version":"0.167.0"}}` | Pinned agent CLI versions, installed from npm by the init container. Renovate bumps these; there is deliberately no `latest`. |
 | rbac.clusterWide | bool | `false` | `readonly` only: grant cluster-wide instead of release-namespace-only. |
 | rbac.profile | string | `"none"` | What the workspace may do in the cluster. `none`            no ServiceAccount token is mounted (default) `readonly`        get/list/watch on common resources, Secrets excluded `namespace-admin` the built-in `admin` ClusterRole, bound in the release namespace only |
+| remoteControl | object | `{"enabled":false,"name":"","spawn":"same-dir"}` | Run `claude remote-control` on every pod start (supervised, in a detached tmux session named `rc`), so the pod shows up as an environment under claude.ai/code and in the mobile app. Needs a full claude.ai subscription login in the home volume: do `/login` once; a CLAUDE_CODE_OAUTH_TOKEN from `claude setup-token` is inference-only and does not work for Remote Control. The first run asks `Enable Remote Control? (y/n)` once:   kubectl exec -it <pod> -- tmux attach -t rc The answer is stored in the home volume. Until you are logged in, the loop retries every 30 seconds. |
+| remoteControl.name | string | `""` | Environment name shown in claude.ai/code. Letters, digits, `.`, `_`, `-`, space. |
 | resources.limits.memory | string | `"2Gi"` |  |
 | resources.requests.cpu | string | `"100m"` |  |
 | resources.requests.memory | string | `"256Mi"` |  |

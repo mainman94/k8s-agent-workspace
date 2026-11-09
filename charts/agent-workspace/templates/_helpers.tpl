@@ -57,6 +57,10 @@ app.kubernetes.io/instance: {{ .Release.Name }}
   value: /home/agent/.local/share/uv/python
 - name: UV_TOOL_DIR
   value: /home/agent/.local/share/uv/tools
+# A private TMPDIR: with fsGroup the /tmp emptyDir is world-writable without
+# the sticky bit, which Claude Code refuses for its messaging sockets.
+- name: TMPDIR
+  value: /home/agent/.tmp
 - name: TMUX_TMPDIR
   value: /tmp
 - name: PATH

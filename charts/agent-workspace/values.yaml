@@ -38,6 +38,22 @@ presets:
 secrets:
   existingSecret: ""
 
+# -- Run `claude remote-control` on every pod start (supervised, in a detached
+# tmux session named `rc`), so the pod shows up as an environment under
+# claude.ai/code and in the mobile app. Needs a full claude.ai subscription
+# login in the home volume: do `/login` once; a CLAUDE_CODE_OAUTH_TOKEN from
+# `claude setup-token` is inference-only and does not work for Remote Control.
+# The first run asks `Enable Remote Control? (y/n)` once:
+#   kubectl exec -it <pod> -- tmux attach -t rc
+# The answer is stored in the home volume. Until you are logged in, the loop
+# retries every 30 seconds.
+remoteControl:
+  enabled: false
+  # -- Environment name shown in claude.ai/code. Letters, digits, `.`, `_`, `-`, space.
+  name: ""
+  # -- `same-dir`, `worktree` or `session` (see `claude remote-control --help`).
+  spawn: same-dir
+
 # -- MCP servers for Claude Code, rendered into a project-scope `.mcp.json` in
 # the workspace directory (rewritten on every pod start; values are the source
 # of truth). Remote servers use `type: http` + `url`; local ones run as

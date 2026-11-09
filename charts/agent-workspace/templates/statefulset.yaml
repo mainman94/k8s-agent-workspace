@@ -45,7 +45,8 @@ spec:
           command: [sh, -ec]
           args:
             - |
-              mkdir -p /home/agent/workspace
+              mkdir -p /home/agent/workspace /home/agent/.tmp
+              chmod 700 /home/agent/.tmp
               {{- if .Values.mcp.servers }}
               cp /config/mcp.json /home/agent/workspace/.mcp.json
               {{- end }}
@@ -93,17 +94,23 @@ spec:
           image: {{ $image }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           workingDir: /home/agent/workspace
-          {{- if .Values.ttyd.enabled }}
           command: [sh, -c]
-          # exec so ttyd is PID 1's replacement and receives SIGTERM.
+          # exec so the final process replaces the shell and receives SIGTERM.
           args:
-            - exec ttyd --writable --port {{ .Values.ttyd.port }} --credential "$TTYD_CREDENTIAL" tmux new -A -s agent
+            - |
+              {{- if .Values.remoteControl.enabled }}
+              tmux new-session -d -s rc "$RC_CMD"
+              {{- end }}
+              {{- if .Values.ttyd.enabled }}
+              exec ttyd --writable --port {{ .Values.ttyd.port }} --credential "$TTYD_CREDENTIAL" tmux new -A -s agent
+              {{- else }}
+              exec sleep infinity
+              {{- end }}
+          {{- if .Values.ttyd.enabled }}
           ports:
             - { name: ttyd, containerPort: {{ .Values.ttyd.port }} }
           readinessProbe:
             tcpSocket: { port: ttyd }
-          {{- else }}
-          command: [sleep, infinity]
           {{- end }}
           env:
             {{- include "agent-workspace.baseEnv" . | nindent 12 }}
@@ -113,6 +120,10 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.ttyd.existingSecret }}
                   key: {{ .Values.ttyd.secretKey }}
+            {{- end }}
+            {{- if .Values.remoteControl.enabled }}
+            - name: RC_CMD
+              value: {{ printf "while :; do claude remote-control --name '%s' --spawn %s; sleep 30; done" (default $name .Values.remoteControl.name) .Values.remoteControl.spawn | quote }}
             {{- end }}
             {{- range $k, $v := .Values.env }}
             - name: {{ $k }}

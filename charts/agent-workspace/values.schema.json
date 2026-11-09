@@ -5,27 +5,68 @@
     "agent": {
       "type": "object",
       "properties": {
-        "preset": { "enum": ["claude-code", "codex", "none"] }
+        "preset": {
+          "enum": [
+            "claude-code",
+            "codex",
+            "none"
+          ]
+        }
       }
     },
     "rbac": {
       "type": "object",
       "properties": {
-        "profile": { "enum": ["none", "readonly", "namespace-admin"] },
-        "clusterWide": { "type": "boolean" }
+        "profile": {
+          "enum": [
+            "none",
+            "readonly",
+            "namespace-admin"
+          ]
+        },
+        "clusterWide": {
+          "type": "boolean"
+        }
       }
     },
     "ttyd": {
       "type": "object",
       "properties": {
-        "enabled": { "type": "boolean" },
-        "port": { "type": "integer", "minimum": 1, "maximum": 65535 }
+        "enabled": {
+          "type": "boolean"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        }
       }
     },
     "persistence": {
       "type": "object",
       "properties": {
-        "enabled": { "type": "boolean" }
+        "enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "remoteControl": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._ -]*$"
+        },
+        "spawn": {
+          "enum": [
+            "same-dir",
+            "worktree",
+            "session"
+          ]
+        }
       }
     }
   }
