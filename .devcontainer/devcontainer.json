@@ -2,7 +2,7 @@
   "name": "k8s-agent-workspace",
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
   "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    "ghcr.io/devcontainers/features/docker-in-docker:4": {}
   },
   "postCreateCommand": "curl -fsSL https://mise.run | sh && export PATH=$HOME/.local/bin:$PATH && mise trust && mise install && mise exec -- prek install",
   "remoteUser": "vscode"
