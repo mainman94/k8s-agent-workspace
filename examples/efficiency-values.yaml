@@ -5,8 +5,11 @@ agent:
   instructions: |
     # Search tools
     Prefer fast CLI tools over slow defaults: `rg` instead of `grep`, `fd`
-    instead of `find`, `bat` instead of `cat` for viewing, `jq` for JSON,
-    `ast-grep` for structural code search/rewrite.
+    instead of `find`, `bat` instead of `cat` for viewing, `eza` instead of
+    `ls`, `sd` instead of `sed`, `jq` for JSON, `yq` for YAML, `ast-grep` for
+    structural code search/rewrite, `difft` for structural diffs (`delta` for
+    readable git diffs), `tokei` for code statistics, `hyperfine` for benchmarks,
+    `shellcheck` for shell scripts.
 
 claude:
   managedSettings:

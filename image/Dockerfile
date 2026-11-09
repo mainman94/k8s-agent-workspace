@@ -20,12 +20,18 @@ ARG UV_VERSION=0.13.7
 ARG TERRAFORM_VERSION=1.17.1
 # renovate: datasource=npm depName=@ast-grep/cli
 ARG AST_GREP_VERSION=0.51.1
+# renovate: datasource=github-releases depName=mikefarah/yq
+ARG YQ_VERSION=4.54.3
+# difftastic publishes no checksum file; the sha256 values live in install-tools.sh
+# and must be updated together with this version (a stale pin fails the build).
+# renovate: datasource=github-releases depName=Wilfred/difftastic
+ARG DIFFTASTIC_VERSION=0.72.0
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # hadolint ignore=DL3008
 RUN apt-get update \
- && apt-get install -y --no-install-recommends ca-certificates curl git jq less bat fd-find openssh-client ripgrep tmux unzip \
+ && apt-get install -y --no-install-recommends ca-certificates curl git jq less bat eza fd-find git-delta hyperfine openssh-client ripgrep sd shellcheck tmux tokei unzip \
  && rm -rf /var/lib/apt/lists/*
 
 # Debian ships these under different names; agents expect `fd` and `bat`.
