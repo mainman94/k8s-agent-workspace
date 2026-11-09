@@ -1,0 +1,17 @@
+# Opt-in agent setup: ponytail (a plugin that keeps changes and answers small)
+# plus standing instructions that steer the agent to the fast search tools in
+# the image. The chart defaults stay neutral.
+agent:
+  instructions: |
+    # Search tools
+    Prefer fast CLI tools over slow defaults: `rg` instead of `grep`, `fd`
+    instead of `find`, `bat` instead of `cat` for viewing, `jq` for JSON,
+    `ast-grep` for structural code search/rewrite.
+
+claude:
+  managedSettings:
+    extraKnownMarketplaces:
+      ponytail:
+        source: {source: github, repo: DietrichGebert/ponytail}
+    enabledPlugins:
+      ponytail@ponytail: true

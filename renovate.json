@@ -1,0 +1,36 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests",
+    "docker:pinDigests"
+  ],
+  "pre-commit": {
+    "enabled": true
+  },
+  "customManagers": [
+    {
+      "description": "Agent CLI versions pinned in values.yaml via a renovate marker comment.",
+      "customType": "regex",
+      "managerFilePatterns": ["/^charts/agent-workspace/values\\.yaml$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\n\\s+version: \"(?<currentValue>[^\"]+)\""
+      ]
+    },
+    {
+      "description": "Tool versions pinned in the image Dockerfile via ARG + marker comment.",
+      "customType": "regex",
+      "managerFilePatterns": ["/^image/Dockerfile$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\nARG \\S+_VERSION=(?<currentValue>\\S+)"
+      ]
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Agent CLIs are what the workspace exists for; bump them via PR, never auto-merge.",
+      "matchDepNames": ["@anthropic-ai/claude-code", "@openai/codex"],
+      "automerge": false
+    }
+  ]
+}

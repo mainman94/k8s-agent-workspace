@@ -1,0 +1,15 @@
+# The toolchain for this repo, in one place. Dev container, hooks and CI all
+# install from here; Renovate keeps the pins current (mise manager).
+
+[tools]
+helm = "4.3.1"
+"aqua:helm/chart-testing" = "3.15.0"
+helm-docs = "1.14.2"
+# chart-testing shells out to these two.
+"pipx:yamale" = "6.1.0"
+"pipx:yamllint" = "1.38.0"
+kubeconform = "0.8.0"
+python = "3.15.2"
+prek = "0.5.10"
+actionlint = "1.7.12"
+shellcheck = "0.11.0"

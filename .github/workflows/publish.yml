@@ -1,0 +1,88 @@
+name: Publish image
+
+# A `v*` tag builds and pushes the base image and the Helm chart (OCI) to GHCR. The workflow file is read
+# from the tagged commit, so a test tag works from any branch.
+on:
+  push:
+    tags: ["v*"]
+
+permissions: {}
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE: ghcr.io/${{ github.repository }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # refs/tags/v0.1.0 -> 0.1.0 (the chart's appVersion form, no leading v).
+      - name: Tag name
+        id: tag
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: echo "version=${REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: image
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ env.IMAGE }}:${{ steps.tag.outputs.version }}
+          labels: |-
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.version=${{ steps.tag.outputs.version }}
+
+  chart:
+    needs: image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5
+        with:
+          install_args: helm
+          # A release workflow must not restore a cache an earlier run could have poisoned.
+          cache: false
+
+      # The tag is the release: chart version and appVersion (= image tag) must match it.
+      - name: Check tag matches Chart.yaml
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          want="${REF_NAME#v}"
+          for key in version appVersion; do
+            got="$(awk -v k="$key:" '$1==k {gsub(/"/, "", $2); print $2}' charts/agent-workspace/Chart.yaml)"
+            [ "$got" = "$want" ] || { echo "Chart.yaml $key is '$got', tag says '$want'" >&2; exit 1; }
+          done
+
+      - name: Package and push
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          ACTOR: ${{ github.actor }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+        run: |-
+          echo "$GH_TOKEN" | helm registry login ghcr.io --username "$ACTOR" --password-stdin
+          helm package charts/agent-workspace --destination dist
+          helm push "dist/agent-workspace-${REF_NAME#v}.tgz" "oci://ghcr.io/${OWNER,,}/charts"

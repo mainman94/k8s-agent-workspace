@@ -1,0 +1,78 @@
+{{- $name := include "agent-workspace.fullname" . }}
+{{- if eq .Values.rbac.profile "readonly" }}
+{{- $kind := ternary "ClusterRole" "Role" .Values.rbac.clusterWide }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: {{ $kind }}
+metadata:
+  name: {{ $name }}-readonly
+  {{- if not .Values.rbac.clusterWide }}
+  namespace: {{ .Release.Namespace }}
+  {{- end }}
+  labels:
+    {{- include "agent-workspace.labels" . | nindent 4 }}
+# Secrets are deliberately absent: reading them would hand the agent every
+# credential in scope.
+rules:
+  - apiGroups: [""]
+    resources:
+      - pods
+      - pods/log
+      - services
+      - endpoints
+      - configmaps
+      - events
+      - persistentvolumeclaims
+      {{- if .Values.rbac.clusterWide }}
+      - namespaces
+      - nodes
+      {{- end }}
+    verbs: [get, list, watch]
+  - apiGroups: [apps]
+    resources: [deployments, statefulsets, daemonsets, replicasets]
+    verbs: [get, list, watch]
+  - apiGroups: [batch]
+    resources: [jobs, cronjobs]
+    verbs: [get, list, watch]
+  - apiGroups: [networking.k8s.io]
+    resources: [ingresses, networkpolicies]
+    verbs: [get, list, watch]
+  - apiGroups: [gateway.networking.k8s.io]
+    resources: [gateways, httproutes]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: {{ $kind }}Binding
+metadata:
+  name: {{ $name }}-readonly
+  {{- if not .Values.rbac.clusterWide }}
+  namespace: {{ .Release.Namespace }}
+  {{- end }}
+  labels:
+    {{- include "agent-workspace.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: {{ $kind }}
+  name: {{ $name }}-readonly
+subjects:
+  - kind: ServiceAccount
+    name: {{ $name }}
+    namespace: {{ .Release.Namespace }}
+{{- else if eq .Values.rbac.profile "namespace-admin" }}
+# RoleBinding (not ClusterRoleBinding) to the built-in `admin` ClusterRole:
+# full control, but only inside the release namespace.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $name }}-admin
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "agent-workspace.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: {{ $name }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}

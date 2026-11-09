@@ -1,0 +1,61 @@
+{{ template "chart.header" . }}
+{{ template "chart.deprecationWarning" . }}
+
+{{ template "chart.badgesSection" . }}
+
+{{ template "chart.description" . }}
+
+{{ template "chart.homepageLine" . }}
+
+## Security defaults
+
+- Non-root (uid 10001), `readOnlyRootFilesystem`, all capabilities dropped,
+  `seccompProfile: RuntimeDefault`.
+- No ServiceAccount token unless `rbac.profile` is `readonly` or `namespace-admin`.
+- No credentials in values: reference existing Secrets.
+- A web terminal is never rendered without authentication.
+
+## Quick start
+
+```sh
+helm install agent oci://ghcr.io/mainman94/charts/agent-workspace -n agents --create-namespace
+kubectl -n agents exec -it agent-agent-workspace-0 -- tmux new -A -s agent
+claude   # then /login once; the session lives in the home PVC
+```
+
+## MCP servers
+
+Remote and local (stdio) servers are declared under `mcp.servers` and
+rendered into the workspace's project-scope `.mcp.json`. Tokens come from the
+Secret in `secrets.existingSecret` via `${VAR}`:
+
+```yaml
+mcp:
+  servers:
+    super-intelligence:
+      type: http
+      url: https://mcp.example.com/mcp
+      headers:
+        Authorization: Bearer ${SUPER_INTELLIGENCE_TOKEN}
+    firefly:
+      command: npx
+      args: [-y, mcp-server-firefly-iii]
+      env:
+        FIREFLY_URL: https://firefly.example.com
+        FIREFLY_TOKEN: ${FIREFLY_TOKEN}
+```
+
+Local servers run inside the pod, so they need egress to whatever they talk to
+and to the package registry. `npx` (Node) and `uvx` (Python, via `uv`) are in the image.
+
+## Plugins and efficiency tooling
+
+`claude.managedSettings` is mounted as Claude Code's managed settings, so it
+can declare plugin marketplaces and enabled plugins without touching the
+user's own settings in the home volume. See
+[examples/efficiency-values.yaml](../../examples/efficiency-values.yaml) for a
+ponytail plugin and search-tool instructions.
+
+{{ template "chart.requirementsSection" . }}
+
+{{ template "chart.valuesSection" . }}

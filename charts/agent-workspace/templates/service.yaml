@@ -1,0 +1,16 @@
+{{- if .Values.ttyd.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "agent-workspace.fullname" . }}
+  labels:
+    {{- include "agent-workspace.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: ttyd
+      port: {{ .Values.service.port }}
+      targetPort: ttyd
+  selector:
+    {{- include "agent-workspace.selectorLabels" . | nindent 4 }}
+{{- end }}

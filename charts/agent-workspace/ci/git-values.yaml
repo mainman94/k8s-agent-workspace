@@ -1,0 +1,8 @@
+git:
+  repos:
+    - url: https://github.com/example/repo.git
+    - url: https://github.com/example/other.git
+      path: other-checkout
+      ref: main
+secrets:
+  existingSecret: agent-keys

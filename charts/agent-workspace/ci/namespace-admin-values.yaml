@@ -1,0 +1,4 @@
+rbac:
+  profile: namespace-admin
+agent:
+  preset: codex

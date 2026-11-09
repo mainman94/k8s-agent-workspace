@@ -1,0 +1,12 @@
+Workspace: {{ include "agent-workspace.fullname" . }}-0   RBAC profile: {{ .Values.rbac.profile }}
+
+{{- if .Values.ttyd.enabled }}
+Web terminal (basic auth from secret {{ .Values.ttyd.existingSecret }}):
+  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "agent-workspace.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }}
+{{- else }}
+Attach:
+  kubectl -n {{ .Release.Namespace }} exec -it {{ include "agent-workspace.fullname" . }}-0 -- tmux new -A -s agent
+{{- end }}
+{{- if ne .Values.agent.preset "none" }}
+Then run `{{ ternary "claude" "codex" (eq .Values.agent.preset "claude-code") }}` and log in, or provide an API key via secrets.existingSecret.
+{{- end }}
