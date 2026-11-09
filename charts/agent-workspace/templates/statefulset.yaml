@@ -101,6 +101,14 @@ spec:
             - |
               {{- if .Values.remoteControl.enabled }}
               tmux new-session -d -s rc "$RC_CMD"
+              # Enabling remoteControl in the values is the consent: answer the
+              # one-time "Enable Remote Control? (y/n)" prompt, whenever it
+              # appears (it only shows up once logged in). Matches only while the prompt is
+              # the last, unanswered line, so the answered one left on screen never re-fires.
+              ( while sleep 20; do
+                  tmux capture-pane -t rc -p 2>/dev/null | grep -v '^$' | tail -n 1 | grep -qx 'Enable Remote Control? (y/n)' \
+                    && tmux send-keys -t rc y Enter
+                done ) &
               {{- end }}
               {{- if .Values.ttyd.enabled }}
               exec ttyd --writable --port {{ .Values.ttyd.port }} --credential "$TTYD_CREDENTIAL" tmux new -A -s agent
