@@ -5,7 +5,7 @@ SHELL := bash
 
 CHART := charts/agent-workspace
 # Every values file under ci/ is rendered and linted: one per feature toggle.
-CI_VALUES := $(wildcard $(CHART)/ci/*-values.yaml)
+CI_VALUES := $(wildcard $(CHART)/ci/*-values.yaml) $(wildcard examples/*-values.yaml)
 
 .PHONY: help
 help: ## Show this help

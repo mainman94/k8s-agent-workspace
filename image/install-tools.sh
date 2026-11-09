@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install kubectl, helm, talosctl, gh and ttyd with checksum verification.
+# Install kubectl, helm, talosctl, gh, ttyd, uv and terraform with checksum verification.
 # Expects TARGETARCH (amd64|arm64) and the *_VERSION build args in the env.
 set -euo pipefail
 
@@ -48,3 +48,18 @@ base="https://github.com/tsl0922/ttyd/releases/download/${TTYD_VERSION}"
 fetch "${base}/ttyd.${ttyd_arch}" ttyd
 check ttyd "$(curl -fsSL "${base}/SHA256SUMS" | awk -v f="ttyd.${ttyd_arch}" '$2==f {print $1}')"
 install -m 0755 ttyd /usr/local/bin/ttyd
+
+# uv + uvx, for Python-based MCP servers (`command: uvx`)
+base="https://github.com/astral-sh/uv/releases/download/${UV_VERSION}"
+uv_file="uv-${ttyd_arch}-unknown-linux-gnu.tar.gz"
+fetch "${base}/${uv_file}" uv.tgz
+check uv.tgz "$(cut -d' ' -f1 <(curl -fsSL "${base}/${uv_file}.sha256"))"
+tar -xzf uv.tgz
+install -m 0755 "uv-${ttyd_arch}-unknown-linux-gnu/uv" "uv-${ttyd_arch}-unknown-linux-gnu/uvx" /usr/local/bin/
+
+# terraform (HashiCorp publishes a signed SHA256SUMS next to every release)
+base="https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}"
+fetch "${base}/terraform_${TERRAFORM_VERSION}_linux_${arch}.zip" terraform.zip
+check terraform.zip "$(curl -fsSL "${base}/terraform_${TERRAFORM_VERSION}_SHA256SUMS" | awk -v f="terraform_${TERRAFORM_VERSION}_linux_${arch}.zip" '$2==f {print $1}')"
+unzip -q terraform.zip terraform
+install -m 0755 terraform /usr/local/bin/terraform

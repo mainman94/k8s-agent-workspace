@@ -1,4 +1,4 @@
-{{- if .Values.mcp.servers }}
+{{- if or .Values.mcp.servers .Values.agent.instructions }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,6 +6,12 @@ metadata:
   labels:
     {{- include "agent-workspace.labels" . | nindent 4 }}
 data:
+  {{- if .Values.mcp.servers }}
   mcp.json: |
     {{- dict "mcpServers" .Values.mcp.servers | toPrettyJson | nindent 4 }}
+  {{- end }}
+  {{- if .Values.agent.instructions }}
+  instructions.md: |
+    {{- .Values.agent.instructions | nindent 4 }}
+  {{- end }}
 {{- end }}

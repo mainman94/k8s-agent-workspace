@@ -49,6 +49,11 @@ spec:
               {{- if .Values.mcp.servers }}
               cp /config/mcp.json /home/agent/workspace/.mcp.json
               {{- end }}
+              {{- if .Values.agent.instructions }}
+              mkdir -p /home/agent/.claude /home/agent/.codex
+              cp /config/instructions.md /home/agent/.claude/CLAUDE.md
+              cp /config/instructions.md /home/agent/.codex/AGENTS.md
+              {{- end }}
               cd /home/agent/workspace
               {{- range .Values.git.repos }}
               {{- $path := default (base (trimSuffix ".git" .url)) .path }}
@@ -65,7 +70,7 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           volumeMounts:
             - { name: home, mountPath: /home/agent }
-            {{- if .Values.mcp.servers }}
+            {{- if or .Values.mcp.servers .Values.agent.instructions }}
             - { name: mcp-config, mountPath: /config, readOnly: true }
             {{- end }}
         {{- if $pkg }}
@@ -125,10 +130,18 @@ spec:
           volumeMounts:
             - { name: home, mountPath: /home/agent }
             - { name: tmp, mountPath: /tmp }
+            {{- if .Values.claude.managedSettings }}
+            - { name: claude-config, mountPath: /etc/claude-code/managed-settings.json, subPath: managed-settings.json, readOnly: true }
+            {{- end }}
       volumes:
         - name: tmp
           emptyDir: {}
-        {{- if .Values.mcp.servers }}
+        {{- if .Values.claude.managedSettings }}
+        - name: claude-config
+          configMap:
+            name: {{ $name }}-claude
+        {{- end }}
+        {{- if or .Values.mcp.servers .Values.agent.instructions }}
         - name: mcp-config
           configMap:
             name: {{ $name }}-mcp

@@ -6,7 +6,7 @@ RBAC profiles, MCP server configuration and an optional authenticated web
 terminal.
 
 - Chart docs and values: [charts/agent-workspace](charts/agent-workspace/README.md)
-- Base image (kubectl, helm, gh, talosctl, tmux, ttyd; no agent CLI): [image/](image/)
+- Base image (kubectl, helm, terraform, gh, talosctl, uv, tmux, ttyd; no agent CLI): [image/](image/)
 - Agent CLIs are installed at pod start into the home volume at a pinned
   version, so the public image carries no proprietary software.
 

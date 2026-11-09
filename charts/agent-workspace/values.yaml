@@ -11,6 +11,10 @@ nameOverride: ""
 fullnameOverride: ""
 
 agent:
+  # -- Standing instructions for the agent, written on every pod start to
+  # ~/.claude/CLAUDE.md and ~/.codex/AGENTS.md (user-level memory files).
+  # Empty by default; see examples/ for a search-tool and git-hygiene preset.
+  instructions: ""
   # -- Which agent to install into the home volume: `claude-code`, `codex` or `none`.
   preset: claude-code
 
@@ -50,9 +54,20 @@ mcp:
   #      Authorization: Bearer ${SUPER_INTELLIGENCE_TOKEN}
   #  firefly:
   #    command: npx
-  #    args: [-y, some-firefly-mcp]
+  #    args: [-y, mcp-server-firefly-iii]
   #    env:
+  #      FIREFLY_URL: https://firefly.example.com
   #      FIREFLY_TOKEN: ${FIREFLY_TOKEN}
+  #  some-python-server:
+  #    command: uvx          # uv is in the image; Python is fetched into the home volume
+  #    args: [some-mcp-package]
+
+# -- Claude Code managed settings, mounted read-only at
+# /etc/claude-code/managed-settings.json. Highest precedence and separate from
+# the user's own settings in the home PVC, so it never clobbers them. Use it to
+# declare plugin marketplaces and enabled plugins (see examples/).
+claude:
+  managedSettings: {}
 
 # -- Code checkout. `git` and `gh` are in the image. Put a GitHub token in
 # `secrets.existingSecret` as GH_TOKEN: it authenticates `gh` and, through a

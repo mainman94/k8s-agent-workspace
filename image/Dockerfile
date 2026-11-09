@@ -14,13 +14,25 @@ ARG TALOSCTL_VERSION=1.14.5
 ARG GH_VERSION=2.103.3
 # renovate: datasource=github-releases depName=tsl0922/ttyd
 ARG TTYD_VERSION=1.7.7
+# renovate: datasource=github-releases depName=astral-sh/uv
+ARG UV_VERSION=0.13.7
+# renovate: datasource=github-releases depName=hashicorp/terraform
+ARG TERRAFORM_VERSION=1.17.1
+# renovate: datasource=npm depName=@ast-grep/cli
+ARG AST_GREP_VERSION=0.51.1
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # hadolint ignore=DL3008
 RUN apt-get update \
- && apt-get install -y --no-install-recommends ca-certificates curl git jq less openssh-client ripgrep tmux \
+ && apt-get install -y --no-install-recommends ca-certificates curl git jq less bat fd-find openssh-client ripgrep tmux unzip \
  && rm -rf /var/lib/apt/lists/*
+
+# Debian ships these under different names; agents expect `fd` and `bat`.
+RUN ln -s /usr/bin/fdfind /usr/local/bin/fd && ln -s /usr/bin/batcat /usr/local/bin/bat
+
+# Structural code search/rewrite (`ast-grep`, `sg`); the node base image has npm.
+RUN npm install --global --no-fund --no-audit "@ast-grep/cli@${AST_GREP_VERSION}" && npm cache clean --force
 
 # Every binary is checked against the publisher's checksum file; a mismatch fails the build.
 COPY install-tools.sh /usr/local/bin/install-tools.sh

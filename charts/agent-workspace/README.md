@@ -38,12 +38,22 @@ mcp:
         Authorization: Bearer ${SUPER_INTELLIGENCE_TOKEN}
     firefly:
       command: npx
-      args: [-y, some-firefly-mcp]
+      args: [-y, mcp-server-firefly-iii]
       env:
+        FIREFLY_URL: https://firefly.example.com
         FIREFLY_TOKEN: ${FIREFLY_TOKEN}
 ```
 
-Local servers run inside the pod, so they need egress to whatever they talk to.
+Local servers run inside the pod, so they need egress to whatever they talk to
+and to the package registry. `npx` (Node) and `uvx` (Python, via `uv`) are in the image.
+
+## Plugins and efficiency tooling
+
+`claude.managedSettings` is mounted as Claude Code's managed settings, so it
+can declare plugin marketplaces and enabled plugins without touching the
+user's own settings in the home volume. See
+[examples/efficiency-values.yaml](../../examples/efficiency-values.yaml) for a
+headroom + ponytail + caveman setup.
 
 ## Requirements
 
@@ -54,7 +64,9 @@ Kubernetes: `>=1.29.0-0`
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | affinity | object | `{}` |  |
+| agent.instructions | string | `""` | Standing instructions for the agent, written on every pod start to ~/.claude/CLAUDE.md and ~/.codex/AGENTS.md (user-level memory files). Empty by default; see examples/ for a search-tool and git-hygiene preset. |
 | agent.preset | string | `"claude-code"` | Which agent to install into the home volume: `claude-code`, `codex` or `none`. |
+| claude | object | `{"managedSettings":{}}` | Claude Code managed settings, mounted read-only at /etc/claude-code/managed-settings.json. Highest precedence and separate from the user's own settings in the home PVC, so it never clobbers them. Use it to declare plugin marketplaces and enabled plugins (see examples/). |
 | env | object | `{}` | Extra plain environment variables. |
 | fullnameOverride | string | `""` |  |
 | git | object | `{"repos":[],"userEmail":"agent-workspace@users.noreply.github.com","userName":"agent-workspace"}` | Code checkout. `git` and `gh` are in the image. Put a GitHub token in `secrets.existingSecret` as GH_TOKEN: it authenticates `gh` and, through a credential helper wired up by env vars (no files written), `git` over HTTPS. |

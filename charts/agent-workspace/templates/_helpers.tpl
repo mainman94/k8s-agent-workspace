@@ -48,6 +48,15 @@ app.kubernetes.io/instance: {{ .Release.Name }}
   value: /home/agent/.local
 - name: NPM_CONFIG_CACHE
   value: /home/agent/.cache/npm
+{{- /* 3.13: the newest Python has no prebuilt wheels for many dependencies, and the image has no compiler to build them. */}}
+- name: UV_PYTHON
+  value: "3.13"
+- name: UV_CACHE_DIR
+  value: /home/agent/.cache/uv
+- name: UV_PYTHON_INSTALL_DIR
+  value: /home/agent/.local/share/uv/python
+- name: UV_TOOL_DIR
+  value: /home/agent/.local/share/uv/tools
 - name: TMUX_TMPDIR
   value: /tmp
 - name: PATH
