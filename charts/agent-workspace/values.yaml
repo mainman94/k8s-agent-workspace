@@ -24,7 +24,7 @@ presets:
   claude-code:
     package: "@anthropic-ai/claude-code"
     # renovate: datasource=npm depName=@anthropic-ai/claude-code
-    version: "2.1.319"
+    version: "2.1.321"
   codex:
     package: "@openai/codex"
     # renovate: datasource=npm depName=@openai/codex
