@@ -19,7 +19,7 @@ ARG UV_VERSION=0.13.7
 # renovate: datasource=github-releases depName=hashicorp/terraform
 ARG TERRAFORM_VERSION=1.17.1
 # renovate: datasource=npm depName=@ast-grep/cli
-ARG AST_GREP_VERSION=0.51.1
+ARG AST_GREP_VERSION=0.51.2
 # renovate: datasource=github-releases depName=mikefarah/yq
 ARG YQ_VERSION=4.54.3
 # difftastic publishes no checksum file; the sha256 values live in install-tools.sh
