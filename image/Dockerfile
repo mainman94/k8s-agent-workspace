@@ -9,7 +9,7 @@ ARG KUBECTL_VERSION=1.37.2
 # renovate: datasource=github-releases depName=helm/helm
 ARG HELM_VERSION=4.3.1
 # renovate: datasource=github-releases depName=siderolabs/talos
-ARG TALOSCTL_VERSION=1.14.5
+ARG TALOSCTL_VERSION=1.14.6
 # renovate: datasource=github-releases depName=cli/cli
 ARG GH_VERSION=2.103.3
 # renovate: datasource=github-releases depName=tsl0922/ttyd
