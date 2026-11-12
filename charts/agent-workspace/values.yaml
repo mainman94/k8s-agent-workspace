@@ -28,7 +28,7 @@ presets:
   codex:
     package: "@openai/codex"
     # renovate: datasource=npm depName=@openai/codex
-    version: "0.167.1"
+    version: "0.167.2"
 
 # -- Credentials. Never put keys in values: reference a Secret that already
 # exists (e.g. created by an ExternalSecret). Every key becomes an env var.
