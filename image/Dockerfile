@@ -15,7 +15,7 @@ ARG GH_VERSION=2.103.3
 # renovate: datasource=github-releases depName=tsl0922/ttyd
 ARG TTYD_VERSION=1.7.7
 # renovate: datasource=github-releases depName=astral-sh/uv
-ARG UV_VERSION=0.13.7
+ARG UV_VERSION=0.13.8
 # renovate: datasource=github-releases depName=hashicorp/terraform
 ARG TERRAFORM_VERSION=1.17.2
 # renovate: datasource=npm depName=@ast-grep/cli
