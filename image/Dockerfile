@@ -7,7 +7,7 @@ ARG TARGETARCH
 # renovate: datasource=github-releases depName=kubernetes/kubernetes
 ARG KUBECTL_VERSION=1.37.2
 # renovate: datasource=github-releases depName=helm/helm
-ARG HELM_VERSION=4.3.1
+ARG HELM_VERSION=4.3.2
 # renovate: datasource=github-releases depName=siderolabs/talos
 ARG TALOSCTL_VERSION=1.14.6
 # renovate: datasource=github-releases depName=cli/cli
