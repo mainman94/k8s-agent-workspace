@@ -59,7 +59,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d # v5
+      - uses: jdx/mise-action@v5
         with:
           install_args: helm
           # A release workflow must not restore a cache an earlier run could have poisoned.
