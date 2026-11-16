@@ -28,6 +28,11 @@
   ],
   "packageRules": [
     {
+      "description": "jdx/mise-action stays on the floating major tag (@v5) instead of a digest pin: the digest churns on every patch release and floods the PR queue.",
+      "matchPackageNames": ["jdx/mise-action"],
+      "pinDigests": false
+    },
+    {
       "description": "Agent CLIs are what the workspace exists for; bump them via PR, never auto-merge.",
       "matchDepNames": ["@anthropic-ai/claude-code", "@openai/codex"],
       "automerge": false
