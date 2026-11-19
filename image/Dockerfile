@@ -11,7 +11,7 @@ ARG HELM_VERSION=4.3.2
 # renovate: datasource=github-releases depName=siderolabs/talos
 ARG TALOSCTL_VERSION=1.14.6
 # renovate: datasource=github-releases depName=cli/cli
-ARG GH_VERSION=2.104.0
+ARG GH_VERSION=2.105.0
 # renovate: datasource=github-releases depName=tsl0922/ttyd
 ARG TTYD_VERSION=1.7.7
 # renovate: datasource=github-releases depName=astral-sh/uv
