@@ -20,6 +20,7 @@ agent:
 
 # -- Pinned agent CLI versions, installed from npm by the init container.
 # Renovate bumps these; there is deliberately no `latest`.
+# @default -- pinned in `values.yaml` (kept out of this README so Renovate bumps don't make it stale)
 presets:
   claude-code:
     package: "@anthropic-ai/claude-code"
