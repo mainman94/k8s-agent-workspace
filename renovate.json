@@ -1,6 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "minimumReleaseAge": "3 days",
+  "internalChecksFilter": "strict",
   "extends": [
     "config:recommended",
     "helpers:pinGitHubActionDigests",
@@ -44,6 +45,11 @@
       "matchUpdateTypes": ["minor", "patch", "digest", "pinDigest"],
       "matchCurrentVersion": "!/^v?0\\./",
       "automerge": true
+    },
+    {
+      "description": "The image and chart are the agents' runtime (home volume, optional cluster RBAC); a bad tool binary or base image there is a compromise, not a broken build, so they get read.",
+      "matchFileNames": ["image/Dockerfile", "charts/**"],
+      "automerge": false
     },
     {
       "description": "Agent CLIs are what the workspace exists for; bump them via PR, never auto-merge.",
